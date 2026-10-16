@@ -17,7 +17,7 @@ Repo ini mereproduksi deadlock tersebut di Laravel 13 dan MySQL 8.4, membedah an
 
 ## Menjalankan
 
-Butuh PHP 8.3+, Composer, dan MySQL 8.x (atau database kompatibel InnoDB).
+Butuh PHP 8.4+, Composer, dan MySQL 8.x (atau database kompatibel InnoDB).
 
 ```bash
 composer install

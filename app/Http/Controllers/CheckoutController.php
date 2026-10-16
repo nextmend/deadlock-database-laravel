@@ -27,14 +27,23 @@ class CheckoutController extends Controller
                 'status' => 'paid',
             ]);
 
-            // Bug: lock rows one by one in whatever order the client sent them
-            foreach ($validated['items'] as $item) {
-                $product = Product::where('id', $item['product_id'])
-                    ->lockForUpdate()
-                    ->firstOrFail();
+            // Solusi 1: Petakan item dan urutkan ID produk secara konsisten (ascending)
+            $itemsByProduct = collect($validated['items'])->keyBy('product_id');
+            $sortedProductIds = $itemsByProduct->keys()->sort()->values();
 
-                if ($product->stock < $item['quantity']) {
-                    throw new RuntimeException("Stok {$product->name} tidak mencukupi.");
+            // Solusi 2: Kunci semua baris dengan satu query terurut (deterministic lock ordering)
+            $products = Product::whereIn('id', $sortedProductIds)
+                ->orderBy('id')
+                ->lockForUpdate()
+                ->get()
+                ->keyBy('id');
+
+            foreach ($sortedProductIds as $productId) {
+                $product = $products->get($productId);
+                $item = $itemsByProduct->get($productId);
+
+                if (! $product || $product->stock < $item['quantity']) {
+                    throw new RuntimeException("Stok ".($product?->name ?? $productId)." tidak mencukupi.");
                 }
 
                 $product->decrement('stock', $item['quantity']);
@@ -44,14 +53,13 @@ class CheckoutController extends Controller
                     'quantity' => $item['quantity'],
                 ]);
 
-                // Simulates processing work (e.g. calculation, payload preparation) while holding the row lock
                 if (! empty($validated['delay_ms'])) {
                     usleep($validated['delay_ms'] * 1000);
                 }
             }
 
             return $order;
-        });
+        }, 3); // Jaring pengaman: otomatis coba ulang hingga 3 kali jika terjadi deadlock transient
 
         return response()->json([
             'message' => 'Checkout berhasil',

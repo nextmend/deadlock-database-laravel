@@ -59,7 +59,7 @@ class CheckoutTest extends TestCase
 
         DB::listen(function ($query) use (&$lockedProductIds) {
             $sql = strtolower($query->sql);
-            if (str_starts_with($sql, 'select') && str_contains($sql, 'products')) {
+            if (str_starts_with($sql, 'select * from') && str_contains($sql, 'products')) {
                 foreach ($query->bindings as $binding) {
                     if (is_numeric($binding) && in_array((int) $binding, [1, 2], true)) {
                         $lockedProductIds[] = (int) $binding;
@@ -79,7 +79,6 @@ class CheckoutTest extends TestCase
 
         // The application MUST acquire locks sorted by ID ascending [1, 2],
         // preventing circular wait-for graph conditions.
-        $distinctOrder = array_values(array_unique($lockedProductIds));
-        $this->assertSame([1, 2], $distinctOrder, 'Locks must be acquired in ascending ID order to prevent deadlocks.');
+        $this->assertSame([1, 2], $lockedProductIds, 'Locks must be acquired in ascending ID order to prevent deadlocks.');
     }
 }

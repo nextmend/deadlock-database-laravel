@@ -1,5 +1,7 @@
 # Anatomi deadlock database: contoh Laravel & MySQL
 
+[![tests](https://github.com/nextmend/deadlock-database-laravel/actions/workflows/tests.yml/badge.svg)](https://github.com/nextmend/deadlock-database-laravel/actions/workflows/tests.yml)
+
 Contoh yang bisa dijalankan untuk artikel [Anatomi deadlock database dan optimasi locking](https://nextmend.dev/artikel/anatomi-deadlock-database-dan-optimasi-locking/?utm_source=github&utm_medium=readme&utm_campaign=artikel-deadlock).
 
 Sebuah backend e-commerce melayani checkout pesanan multi-item. Saat dua pembeli memesan produk yang sama pada detik yang bersamaan tetapi dalam urutan item yang bersilangan, transaksi mereka saling menunggu dan memicu deadlock di InnoDB MySQL (`1213 Deadlock found when trying to get lock; try restarting transaction`).
